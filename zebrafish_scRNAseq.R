@@ -80,3 +80,88 @@ write.csv(marker_zWE.1_2SC, file = "marker_zWE.1_2SC.csv", quote = FALSE)
 #Subset progenitor cells
 zWE.1_2SCp <- subset(zWE.1_2SC, idents = c("0", "3", "4", "7", "11", "15", "17"))
 FeaturePlot(zWE.1_2SCp, reduction = "tsne", features = "pax6b", order = TRUE, pt.size = 1.3)
+
+#subset V2
+zWE.V2 <- subset(zWE.1_2SC, subset = (foxn4 > 0 | vsx1 > 0 | vsx2 > 0 | gata2a > 0 | gata3 > 0) &
+                   otx1 == 0 & otx2a == 0 & otx2b == 0 & six3a == 0 & six3b == 0 & emx2 == 0)
+zWE.V2 <- FindVariableFeatures(zWE.V2)
+zWE.V2 <- ScaleData(zWE.V2, features = rownames(zWE.V2))
+zWE.V2 <- RunPCA(zWE.V2)
+DimHeatmap(zWE.V2, dims = 1:15, balanced = TRUE)
+DimHeatmap(zWE.V2, dims = 16:30, balanced = TRUE)
+ElbowPlot(zWE.V2, ndims = 50)
+zWE.V2 <- RunTSNE(zWE.V2, dims = 1:15)
+zWE.V2 <- FindNeighbors(zWE.V2, dims = 1:15)
+zWE.V2 <- FindClusters(zWE.V2, resolution = 0.6)
+#Plot
+DimPlot(zWE.V2, reduction = "tsne", label = T, label.size = 8, pt.size = 2) + NoLegend()
+DimPlot(zWE.V2, reduction = "tsne", group.by = "Age", label = TRUE,
+        label.size = 8, pt.size = 2) + NoLegend()
+FeaturePlot(zWE.V2, reduction = "tsne", features = "pkd2l1", order = T, pt.size = 4)
+#Find markers of V2
+write.csv(FindAllMarkers(zWE.V2, min.pct = 0.25, only.pos = T),
+          file = "marker_zV2nonotx.csv", quote = F)
+
+#Subset subtypes
+id_sim <- c(rep("posi", length(WhichCells(zWE.1_2SC, expression = sim1a > 0))),
+            rep("nega", length(WhichCells(zWE.1_2SC, expression = sim1a > 0, invert = T))))
+names(id_sim) <- c(WhichCells(zWE.1_2SC, expression = sim1a > 0),
+                   WhichCells(zWE.1_2SC, expression = sim1a > 0, invert = T))
+zWE.1_2SC <- AddMetaData(zWE.1_2SC, metadata = id_sim, col.name = "exp_sim1a")
+DimPlot(zWE.1_2SC, reduction = "tsne", group.by = "exp_sim1a")
+Idents(zWE.1_2SC) <- "exp_sim1a"
+VlnPlot(zWE.1_2SC, features = c("sim1a", "nkx2.2a", "nkx2.2b", "robo3", "cntn2",
+                                "lhx1a", "olig3", "slc17a6b"),
+        idents = "posi", cols = "yellow2")
+
+id_en1 <- c(rep("posi", length(WhichCells(zWE.1_2SC, expression = en1b > 0))),
+            rep("nega", length(WhichCells(zWE.1_2SC, expression = en1b > 0, invert = T))))
+names(id_en1) <- c(WhichCells(zWE.1_2SC, expression = en1b > 0),
+                   WhichCells(zWE.1_2SC, expression = en1b > 0, invert = T))
+zWE.1_2SC <- AddMetaData(zWE.1_2SC, metadata = id_en1, col.name = "exp_en1b")
+DimPlot(zWE.1_2SC, reduction = "tsne", group.by = "exp_en1b")
+Idents(zWE.1_2SC) <- "exp_en1b"
+marker_en1b <- FindMarkers(zWE.1_2SC, ident.1 = "posi", ident.2 = "nega",
+                           min.pct = 0.25, only.pos = T)
+write.csv(marker_en1b, file = "marker_en1b.csv", quote = F)
+DoHeatmap(zWE.1_2SC, cells = WhichCells(zWE.1_2SC, expression = en1b > 0),
+          features = c("en1b", "foxd3", "lhx1a", "lhx5", "pax2a", "pax5", "pax8",
+                       "sp9", "foxp2", "foxd3", "onecut2", "otpa", "otpb", "gbx2",
+                       "pou2f2a.1", "neurod1", "zfhx3", 
+                       "sox11a", "bhlhe22", "mab21l1", "mab21l2",
+                       "lmo3", "slc32a1", "slc6a5", "gad2", "nova2", "rtn1a",
+                       "cnr1", "nxph1", "hmx2", "cacna2d3", "pnoca",
+                       "adarb2", "myt1la", "nova1", "nrxn3b",
+                       "pdzrn4", "rab3c", "celf4",
+                       "olfm1a", "olfm1b", "vstm2l", "rcan2", "olfm2a", "chl1a",
+                       "ank3b",
+                       "cirbpb", "amer2", "ywhah", "zc4h2", "jagn1a", "tnrc6c1",
+                       "rnasekb", "fscn1a", "celf3a", "ckbb", "syt11a", "hes6",
+                       "nrxn1a", "ssbp3b"),
+          label = F)
+
+id_evx <- c(rep("posi", length(WhichCells(zWE.1_2SC, expression = evx2 > 0))),
+            rep("nega", length(WhichCells(zWE.1_2SC, expression = evx2 > 0, invert = T))))
+names(id_evx) <- c(WhichCells(zWE.1_2SC, expression = evx2 > 0),
+                   WhichCells(zWE.1_2SC, expression = evx2 > 0, invert = T))
+zWE.1_2SC <- AddMetaData(zWE.1_2SC, metadata = id_evx, col.name = "exp_evx2")
+DimPlot(zWE.1_2SC, reduction = "tsne", group.by = "exp_evx2")
+Idents(zWE.1_2SC) <- "exp_evx2"
+write.csv(FindMarkers(zWE.1_2SC, ident.1 = "posi", ident.2 = "nega",
+                      min.pct = 0.25, only.pos = T),
+          file = "marker_evx2.csv", quote = F)
+DoHeatmap(zWE.1_2SC, cells = WhichCells(zWE.1_2SC, expression = evx2 > 0),
+          features = c("evx2", "nrn1a", "adcyap1b", "arl4d", "elavl4", "pou3f1",
+                       "robo3", "nhlh2", "slc17a6b", "sort1a", "pou2f2a.1",
+                       "map1b", "stmn2b", "rgmb", "rab3c",
+                       "gng3", "lhx1a", "inab", "mab21l2", "epb41a", "tubb5",
+                       "hmgb3a", "gpm6ab", "nsg2", "ebf3a", "nova2", "gng2",
+                       "elavl3", "lzts1", "mllt11", "rtn1a",
+                       "scrt2", "tuba1a", "uncx", "ebf1a", "meis2a", "tmeff1b",
+                       "cadm4", "zc4h2", "dpysl3", "pak1", "ptp4a1",
+                       "cbln2b", "neflb", "pdzrn4", "tmem163a", "olfm2a",
+                       "lhx5", "pax5", "synpr", "mapk10", "lnpk", "mab21l1",
+                       "lhx9", "lhx2b", "fez1", "ywhah",
+                       "dclk2a", "onecut1", "oaz1b",
+                       "gabarapb", "ptmab", "otpa"),
+          label = F)
